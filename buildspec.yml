@@ -1,30 +1,23 @@
-version: 0.1
-            
+version: 0.2
+
 phases:
-
-  install: 
+  pre_build:
     commands:
-      - go get -u golang.org/x/lint/golint
-
-  pre_build: 
-    commands:
-
-      # Ensure code passes all lint tests
-      - golint -set_exit_status
-
-      # Run all tests included with our application
-      - go test
-
+      - echo.Logging in to Amazon ECR...
+      - aws --version
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - REPOSITORY_URI=789657853664.dkr.ecr.us-east-1.amazonaws.com/ashewnarain
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
-
-      # Build our application
-      - go build -o app
-
-artifacts:
-  files:
-    - app
-    - appspec.yml
-    - buildspec.yml
-    - config/*
-    - codedeploy/*
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
