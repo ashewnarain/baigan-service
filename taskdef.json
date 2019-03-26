@@ -3,7 +3,7 @@
     "containerDefinitions": [
         {
             "name": "baigan-service",
-            "image": "ashewnarain",
+            "image": "<IMAGE1_NAME>",
             "essential": true,
             "portMappings": [
                 {

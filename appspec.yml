@@ -1,5 +1,13 @@
 version: 0.0
 os: linux
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <TASK_DEFINITION>
+        LoadBalancerInfo:
+          ContainerName: "baigan-service-container"
+          ContainerPort: 80
 files:
   - source: /app
     destination: /opt
