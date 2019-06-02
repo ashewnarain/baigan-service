@@ -73,6 +73,7 @@ func initializeAccountEndpoints(r *mux.Router) {
 	r.HandleFunc("/accounts", GetAccounts).Methods("GET")
 	r.HandleFunc("/accounts/{id}", GetAccount).Methods("GET")
 	r.HandleFunc("/accounts/{id}", CreateAccount).Methods("POST")
+	r.HandleFunc("/accounts/{id}", UpdateAccount).Methods("PUT")
 	r.HandleFunc("/accounts/{id}", DeleteAccount).Methods("DELETE")
 	return
 }

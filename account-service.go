@@ -7,6 +7,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// UpdateAccount update an account
+func UpdateAccount(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	logger.Printf("HTTP POST /accounts/%v\n", params["id"])
+	var account Account
+	_ = json.NewDecoder(r.Body).Decode(&account)
+	account.ID = params["id"]
+	w.Header().Set("Content-Type", "application/json")
+	id := UpdateAccountRecord(account.ID, account.Firstname, account.Lastname, account.EmailAddress)
+	json.NewEncoder(w).Encode(id)
+}
+
 // GetAccounts gets list of accounts
 func GetAccounts(w http.ResponseWriter, r *http.Request) {
 	logger.Println("HTTP GET /accounts")
@@ -45,12 +57,7 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	logger.Printf("HTTP DELETE /accounts/%v\n", params["id"])
-	for index, item := range accounts {
-		if item.ID == params["id"] {
-			accounts = append(accounts[:index], accounts[index+1:]...)
-			break
-		}
-	}
+	id := DeleteAccountRecord(params["id"])
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(accounts)
+	json.NewEncoder(w).Encode(id)
 }

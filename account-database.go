@@ -59,3 +59,36 @@ func GetAccountRecords() []Account {
 	}
 	return accounts
 }
+
+// UpdateAccountRecord updates account record
+func UpdateAccountRecord(accountID string, firstName string, lastName string, emailAddress string) string {
+	id := "0"
+	sqlStatement := `
+		UPDATE smartbox.account
+		SET first_name = $2, 
+		last_name = $3,
+		email_address = $4
+		WHERE account_id = $1
+		RETURNING account_id;`
+	err := db.QueryRow(sqlStatement, accountID, firstName, lastName, emailAddress).Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Updated record ID:", id)
+	return id
+}
+
+// DeleteAccountRecord deletes an account record
+func DeleteAccountRecord(accountID string) string {
+	sqlStatement := `
+		DELETE FROM smartbox.account
+		WHERE account_id = $1
+		RETURNING account_id;`
+	var id string
+	err := db.QueryRow(sqlStatement, accountID).Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(id)
+	return id
+}
