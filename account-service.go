@@ -1,22 +1,62 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
+// CreateAccount creates an account
+func CreateAccount(w http.ResponseWriter, r *http.Request) {
+	logger.Printf("HTTP POST /accounts")
+	var account Account
+	err := json.NewDecoder(r.Body).Decode(&account)
+	// error decoding body
+	if err != nil {
+		logger.Printf(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	id, err := CreateAccountRecord(account.EmailAddress, account.Firstname, account.Lastname)
+	if err != nil {
+		logger.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(id)
+}
+
 // UpdateAccount update an account
 func UpdateAccount(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	logger.Printf("HTTP POST /accounts/%v\n", params["id"])
+	logger.Printf("HTTP PUT /accounts")
 	var account Account
-	_ = json.NewDecoder(r.Body).Decode(&account)
-	account.ID = params["id"]
+	err := json.NewDecoder(r.Body).Decode(&account)
+	// error decoding body
+	if err != nil {
+		logger.Printf(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	id, err := UpdateAccountRecord(account)
 	w.Header().Set("Content-Type", "application/json")
-	id := UpdateAccountRecord(account.ID, account.Firstname, account.Lastname, account.EmailAddress)
-	json.NewEncoder(w).Encode(id)
+	if err != nil {
+		logger.Printf(err.Error())
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			// error calling database
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	json.NewEncoder(w).Encode(&id)
 }
 
 // GetAccounts gets list of accounts
@@ -32,25 +72,22 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	logger.Printf("HTTP GET /accounts/%v\n", params["id"])
-	for _, item := range accounts {
-		if item.ID == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			return
+	id := params["id"]
+	account, err := GetAccountRecord(id)
+	if err != nil {
+		logger.Printf(err.Error())
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			// error calling database
+			w.WriteHeader(http.StatusInternalServerError)
 		}
+		json.NewEncoder(w).Encode(err)
+		return
 	}
-	json.NewEncoder(w).Encode(&Account{})
-}
 
-// CreateAccount creates an account
-func CreateAccount(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	logger.Printf("HTTP POST /accounts/%v\n", params["id"])
-	var account Account
-	_ = json.NewDecoder(r.Body).Decode(&account)
-	account.ID = params["id"]
-	w.Header().Set("Content-Type", "application/json")
-	id := CreateAccountRecord(account.ID, account.Firstname, account.Lastname, account.EmailAddress)
-	json.NewEncoder(w).Encode(id)
+	json.NewEncoder(w).Encode(account)
+
 }
 
 // DeleteAccount deletes an account

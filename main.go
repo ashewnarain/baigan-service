@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	db "github.com/ashewnarain/baigan-service/database"
 	"github.com/gorilla/mux"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -20,10 +21,7 @@ var accounts []Account
 
 func main() {
 	InitializeLogging()
-	ConnectDB()
-
-	// temporary test data
-	// accounts = append(accounts, Account{ID: "1", Firstname: "Anthony", Lastname: "Shewnarain", EmailAddress: "anthony.shewnarain@gmail.com"})
+	db.ConnectDB()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", SayHello).Methods("GET")
@@ -66,21 +64,32 @@ func InitializeLogging() {
 // InitializeEndpoints initialize all endpoints
 func InitializeEndpoints(r *mux.Router) {
 	initializeAccountEndpoints(r)
+	initializePasscodeEndpoints(r)
 }
 
 // InitializeAccountEndpoints initialize accounts resources
 func initializeAccountEndpoints(r *mux.Router) {
 	r.HandleFunc("/accounts", GetAccounts).Methods("GET")
 	r.HandleFunc("/accounts/{id}", GetAccount).Methods("GET")
-	r.HandleFunc("/accounts/{id}", CreateAccount).Methods("POST")
-	r.HandleFunc("/accounts/{id}", UpdateAccount).Methods("PUT")
+	r.HandleFunc("/accounts", CreateAccount).Methods("POST")
+	r.HandleFunc("/accounts", UpdateAccount).Methods("PUT")
 	r.HandleFunc("/accounts/{id}", DeleteAccount).Methods("DELETE")
+	return
+}
+
+// initializePasscodeEndpoints initialize accounts resources
+func initializePasscodeEndpoints(r *mux.Router) {
+	// r.HandleFunc("/passcodes", GetPasscodes).Methods("GET")
+	r.HandleFunc("/passcodes/{id}", GetPasscode).Methods("GET")
+	r.HandleFunc("/passcodes", CreatePasscode).Methods("POST")
+	// r.HandleFunc("/passcodes", UpdatePasscode).Methods("PUT")
+	// r.HandleFunc("/passcodes/{id}", DeletePasscode).Methods("DELETE")
 	return
 }
 
 // SayHello Simple ping
 func SayHello(w http.ResponseWriter, r *http.Request) {
-	logger.Println("HTTP GET /")
+	// logger.Println("HTTP GET /")
 	data, err := Asset("data/notes.txt")
 	if err != nil {
 		fmt.Print(err)

@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"database/sql"
@@ -15,7 +15,7 @@ const (
 	dbname   = "baigandb"
 )
 
-var db *sql.DB
+var SQLDB *sql.DB
 
 // ConnectDB opens a connection to the database
 func ConnectDB() {
@@ -23,13 +23,13 @@ func ConnectDB() {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 	var err error
-	db, err = sql.Open("postgres", psqlInfo)
+	SQLDB, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 	// defer db.Close()
 
-	err = db.Ping()
+	err = SQLDB.Ping()
 	if err != nil {
 		panic(err)
 	}
